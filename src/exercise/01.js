@@ -4,8 +4,13 @@
 import * as React from 'react'
 
 const countReducer = (currentState, action) => {
-  if (action.type === 'INCREMENT') {
-    return {...currentState, count: currentState.count +action.step};
+  switch (action.type) {
+    case 'INCREMENT': {
+      return {count: currentState.count + action.step};
+    }
+    default: {
+      throw new Error(`Unsupported action type: ${action.type}`);
+    }
   }
 };
 
