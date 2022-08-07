@@ -27,8 +27,35 @@ function asyncReducer(state, action) {
     }
 }
 
+function useSafeDispatch(dispatch) {
+    const mountedRef = React.useRef(false);
+
+    React.useLayoutEffect(() => {
+        mountedRef.current = true;
+
+        // useLayoutEffect:
+        // it is called as soon as we are mounted (does not wait for the browser to paint the screen),
+        // and ensures that the cleanup is called as soon as we are unmounted w/o waiting for anything either
+        return () => {
+            console.log('Unmounting useSafeDispatch');
+            mountedRef.current = false;
+        }
+    }, []);
+
+    return React.useCallback((...args) => {
+        if (mountedRef.current) {
+            dispatch(...args);
+        } else {
+            console.log('Not dispatching because unmounting useSafeDispatch');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+}
+
 function useAsync(initialState) {
-    const [state, dispatch] = React.useReducer(asyncReducer, initialState);
+    const [state, unsafeDispatch] = React.useReducer(asyncReducer, initialState);
+
+    const dispatch = useSafeDispatch(unsafeDispatch);
 
     const run = React.useCallback((promise) => {
         if (!promise) return;
@@ -43,7 +70,7 @@ function useAsync(initialState) {
                 dispatch({type: 'rejected', error})
             },
         );
-    }, []);
+    }, [dispatch]);
 
     return {...state, run};
 }
@@ -51,26 +78,12 @@ function useAsync(initialState) {
 function PokemonInfo({pokemonName}) {
     const {data: pokemon, status, error, run} = useAsync({status: pokemonName ? 'pending' : 'idle'});
 
-    const mounted = React.useRef(false);
     React.useEffect(() => {
-            mounted.current = true;
-
-            return () => {
-                console.log('unmounting PokemonInfo component');
-                mounted.current = false;
-            }
-        }
-        , []);
-
-    React.useEffect(() => {
-        if (!pokemonName || !mounted.current) {
-            console.log('aborting because', pokemonName ? 'being unmounted' : 'no pokemonName was passed');
-            return;
-        }
+        if (!pokemonName) return;
 
         const pokemonPromise = fetchPokemon(pokemonName);
         run(pokemonPromise);
-    }, [pokemonName, run, mounted]);
+    }, [pokemonName, run]);
 
     switch (status) {
         case 'idle':
