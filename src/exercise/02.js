@@ -10,7 +10,7 @@ import {
     PokemonErrorBoundary,
 } from '../pokemon'
 
-function pokemonInfoReducer(state, action) {
+function asyncReducer(state, action) {
     switch (action.type) {
         case 'pending': {
             return {status: 'pending', data: null, error: null}
@@ -28,7 +28,7 @@ function pokemonInfoReducer(state, action) {
 }
 
 function useAsync(initialState) {
-    const [state, dispatch] = React.useReducer(pokemonInfoReducer, initialState);
+    const [state, dispatch] = React.useReducer(asyncReducer, initialState);
 
     const run = React.useCallback((promise) => {
         if (!promise) return;
