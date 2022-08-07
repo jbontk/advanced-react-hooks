@@ -36,6 +36,7 @@ function useAsync(initialState) {
         dispatch({type: 'pending'});
         promise.then(
             data => {
+                console.log('Data resolved', data)
                 dispatch({type: 'resolved', data})
             },
             error => {
@@ -50,12 +51,26 @@ function useAsync(initialState) {
 function PokemonInfo({pokemonName}) {
     const {data: pokemon, status, error, run} = useAsync({status: pokemonName ? 'pending' : 'idle'});
 
+    const mounted = React.useRef(false);
     React.useEffect(() => {
-        if (!pokemonName) return;
+            mounted.current = true;
+
+            return () => {
+                console.log('unmounting PokemonInfo component');
+                mounted.current = false;
+            }
+        }
+        , []);
+
+    React.useEffect(() => {
+        if (!pokemonName || !mounted.current) {
+            console.log('aborting because', pokemonName ? 'being unmounted' : 'no pokemonName was passed');
+            return;
+        }
 
         const pokemonPromise = fetchPokemon(pokemonName);
         run(pokemonPromise);
-    }, [pokemonName, run]);
+    }, [pokemonName, run, mounted]);
 
     switch (status) {
         case 'idle':
