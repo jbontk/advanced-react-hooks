@@ -14,7 +14,13 @@ const MessagesDisplay = React.forwardRef(function MessagesDisplay({messages}, re
   const scrollToTop = () => containerRef.current.scrollTop = 0;
   const scrollToBottom = () => containerRef.current.scrollTop = containerRef.current.scrollHeight;
 
+  // useImperativeHandle: provide a function that retrns the value that we want
+  // assigned to the current property of our ref
+  // use that hook to expose an "imperative" API when there is no way to do it
+  // in a declarative way
   useImperativeHandle(ref, () => ({scrollToTop, scrollToBottom}));
+  // ref.current = {scrollToTop, scrollToBottom} // also works, but there are some edge cases bugs with this approach
+  // (not idempotent)
 
   return (
     <div ref={containerRef} role="log">
