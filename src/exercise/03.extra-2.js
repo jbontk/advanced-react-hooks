@@ -27,6 +27,15 @@ function pokemonCacheReducer(state, action) {
 }
 
 const PokemonCacheContext = React.createContext();
+
+const usePokemonCache = () => {
+  const context = useContext(PokemonCacheContext);
+
+  if (!context) throw Error('usePokemonCache must be used in a PokemonCacheProvider!')
+
+  return context;
+}
+
 const PokemonCacheProvider = ({children}) => {
   const [cache, dispatch] = React.useReducer(pokemonCacheReducer, {})
 
@@ -38,7 +47,7 @@ const PokemonCacheProvider = ({children}) => {
 
 function PokemonInfo({pokemonName}) {
 
-  const [cache, dispatch] = useContext(PokemonCacheContext);
+  const [cache, dispatch] = usePokemonCache(PokemonCacheContext);
 
   const {data: pokemon, status, error, run, setData} = useAsync()
 
@@ -69,7 +78,7 @@ function PokemonInfo({pokemonName}) {
 }
 
 function PreviousPokemon({onSelect}) {
-  const cache = useContext(PokemonCacheContext)[0];
+  const cache = usePokemonCache(PokemonCacheContext)[0];
   return (
     <div>
       Previous Pokemon
